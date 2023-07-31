@@ -26,9 +26,25 @@
       flex-wrap: wrap;
     }
 
+    #container:empty {
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      padding: 0.65rem 0;
+    }
+
+    #container:empty::before {
+      content: "┐(￣ヘ￣)┌";
+    }
+
     .chart {
       padding: 0.5rem;
       width: 50%;
+      user-select: none;
+    }
+
+    .chart * {
+      pointer-events: none;
     }
 
     #loading {
@@ -63,9 +79,12 @@
   </div>
   <main>
     <h2>Cytus II谱面预览器</h2>
-    <div class="row sticky">
+    <div class="row">
       <input type="file" id="import-chart" style="display: none;" />
       <label class="button" for="import-chart">选择文件</label>
+    </div>
+    <div class="row sticky">
+      <span class="button" id="switch-ghost">GHOST</span>
       <span class="button" id="zoom-out">缩小</span>
       <span class="button" id="zoom-in">放大</span>
     </div>
