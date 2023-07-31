@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
+  <link rel="icon" href="/logo.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="/logo.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/style/themify-icons.css">
+  <link rel="stylesheet" href="/style/fontface.css">
+  <link rel="stylesheet" href="/style/dialog.css">
+  <link rel="stylesheet" href="/main.css" type="text/css" />
+  <style>
+    .sticky {
+      position: sticky;
+      top: 0;
+      margin: 0;
+      padding: 0.65rem 0;
+      background: var(--background-color);
+    }
+
+    #container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .chart {
+      padding: 0.5rem;
+      width: 50%;
+    }
+
+    #loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--background-color);
+      transition: opacity 0.5s;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+  <title>谱面预览器 | C2CTools</title>
+</head>
+
+<body>
+  <noscript class="warning">
+    <p>您的浏览器未启用或不支持JavaScript，无法使用本网站。</p>
+    <p>Your browser isn't enabled or doesn't support JavaScript. Please check and try again.</p>
+  </noscript>
+  <div class="warning hidden">
+    <p>您的浏览器内核版本过低，无法支持网站功能的正常运行。请升级/更换浏览器或是等待本站的兼容性更新。</p>
+  </div>
+  <main>
+    <h2>Cytus II谱面预览器</h2>
+    <div class="row sticky">
+      <input type="file" id="import-chart" style="display: none;" />
+      <label class="button" for="import-chart">选择文件</label>
+      <span class="button" id="zoom-out">缩小</span>
+      <span class="button" id="zoom-in">放大</span>
+    </div>
+    <div id="container"></div>
+  </main>
+  <div id="loading" class="hidden">
+    <p class="loading lg"></p>
+    <p>正在加载中……</p>
+  </div>
+  <template id="dialog-template">
+    <div class="dialog-container hidden">
+      <div class="dialog-mask"></div>
+      <div class="dialog-box">
+        <div class="title"></div>
+        <div class="content"></div>
+        <div class="buttons"></div>
+      </div>
+    </div>
+  </template>
+  <script>
+    try {
+      fetch;
+      eval('async function test() {}');
+    } catch (err) {
+      document.querySelector('.warning.hidden').classList.remove('hidden');
+    }
+  </script>
+  <script src="./script.js" type="module"></script>
+</body>
+
+</html>
