@@ -10,7 +10,6 @@
   <link rel="shortcut icon" href="/logo.ico" type="image/x-icon" />
   <link rel="stylesheet" href="/style/themify-icons.css">
   <link rel="stylesheet" href="/style/fontface.css">
-  <link rel="stylesheet" href="/style/dialog.css">
   <link rel="stylesheet" href="/main.css" type="text/css" />
   <style>
     .sticky {
@@ -43,7 +42,7 @@
       user-select: none;
     }
 
-    .chart * {
+    .chart svg * {
       pointer-events: none;
     }
 
@@ -58,7 +57,7 @@
       width: 100vw;
       height: 100vh;
       background: var(--background-color);
-      transition: opacity 0.5s;
+      transition: transform 0.5s, opacity 0.5s;
     }
 
     #loading.hidden {
@@ -79,20 +78,25 @@
   </div>
   <main>
     <h2>Cytus II谱面预览器</h2>
-    <div class="row">
-      <input type="file" id="import-chart" style="display: none;" />
-      <label class="button" for="import-chart">选择文件</label>
-    </div>
     <div class="row sticky">
-      <span class="button" id="switch-ghost">GHOST</span>
-      <span class="button" id="zoom-out">缩小</span>
-      <span class="button" id="zoom-in">放大</span>
+      <span>
+        <input type="file" id="import-chart" style="display: none;" />
+        <label class="button small" for="import-chart"><i class="ti-file"></i></label>
+        <span class="button small" id="show-statistic"><i class="ti-bar-chart"></i></span>
+        <span class="button small" id="jump-to-page"><i class="ti-location-pin"></i></span>
+      </span>
+      <span>
+        <span class="button small" id="switch-ghost"><i class="ti-eye"></i></span>
+        <span class="button small" id="zoom-out"><i class="ti-zoom-out"></i></span>
+        <span class="button small" id="zoom-in"><i class="ti-zoom-in"></i></span>
+      </span>
     </div>
     <div id="container"></div>
   </main>
   <div id="loading" class="hidden">
-    <p class="loading lg"></p>
-    <p>正在加载中……</p>
+    <div>页面加载中……</div>
+    <p id="progress" class="progress"></p>
+    <div id="progress-count"></div>
   </div>
   <template id="dialog-template">
     <div class="dialog-container hidden">
@@ -108,6 +112,8 @@
     try {
       fetch;
       eval('async function test() {}');
+      [].push(...[]);
+      XMLSerializer;
     } catch (err) {
       document.querySelector('.warning.hidden').classList.remove('hidden');
     }

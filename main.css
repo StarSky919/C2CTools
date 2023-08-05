@@ -200,19 +200,45 @@ hr {
   }
 }
 
+.progress {
+  --progress: 0%;
+
+  overflow: hidden;
+  position: relative;
+  width: 50%;
+  height: 0.3rem;
+  background: var(--background-color-third);
+}
+
+.progress::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: calc(100% - var(--progress));
+  width: 100%;
+  height: 100%;
+  background: var(--text-color);
+}
+
 .button {
   flex: 1;
   display: inline-block;
   padding: 0.65rem 0;
   position: relative;
   color: var(--text-color);
-  background: var(--background-color-third);
-  border-radius: var(--border-radius);
+  background: var(--background-color-second);
+  border: 1px solid var(--border-color);
   text-align: center;
   font-size: 0.9em;
   transition: filter 0.2s, transform 0.2s;
   cursor: pointer;
   user-select: none;
+}
+
+.button.small {
+  flex: initial;
+  padding: 0.3rem 0.65rem;
+  line-height: 1.5em;
 }
 
 .button:active {
@@ -247,6 +273,10 @@ hr {
 
 *[class^="ti-"] {
   vertical-align: -0.035em;
+}
+
+.button *[class^="ti-"] {
+  vertical-align: middle;
 }
 
 main {
