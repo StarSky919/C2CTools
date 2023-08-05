@@ -85,7 +85,6 @@ function preprocess({
       statistic.page.down++;
     } else throw '谱面中存在不受支持的扫线方向。';
     if (isNullish(previousEndTick)) previousEndTick = end_tick;
-    else if (previousEndTick !== start_tick) throw '谱面中存在不连续页面。';
     const pageLength = end_tick - start_tick;
     if (isNullish(previousPageLength)) previousPageLength = pageLength;
     const pageLengthRatio = previousPageLength / pageLength * previousPageLengthRatio;
