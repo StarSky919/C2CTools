@@ -121,7 +121,7 @@ function preprocess({
     const next = tempo_list[index + 1];
     tempo.length = (next ? next.tick : page_list[page_list.length - 1].end_tick) - tempo.tick;
     tempo.end = tempo.tick + tempo.length;
-    if (next) statistic.tempo[next.value > tempo.value ? 'up' : 'down']++;
+    if (next) statistic.tempo[next.value < tempo.value ? 'up' : 'down']++;
   });
 
   event_order_list.reduce((events, { event_list }) => {
@@ -385,7 +385,7 @@ container.addEventListener('click', async event => {
   img.addEventListener('load', () => {
     ctx.drawImage(img, 0, 0, cav.width, cav.height);
     const url = cav.toDataURL();
-    createElement('a', { download: 'chart.png', href: url }).click();
+    createElement('a', { download: `${Date.now()}.png`, href: url }).click();
   });
 });
 
