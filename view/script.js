@@ -78,13 +78,14 @@ function preprocess({
   const pages = [];
   let previousEndTick, previousPageScale, previousPageLength, previousPageLengthRatio = 2 / ((page_list[0].end_tick - page_list[0].start_tick) / time_base);
   for (let i = 0; i < page_list.length; i++) {
-    const { start_tick, end_tick, scan_line_direction, PositionFunction } = page_list[i];
+    let { start_tick, end_tick, scan_line_direction, PositionFunction } = page_list[i];
+    if (start_tick < 0) start_tick = previousEndTick || 0;
+    previousEndTick = end_tick;
     if (scan_line_direction === 1) {
       statistic.page.up++;
     } else if (scan_line_direction === -1) {
       statistic.page.down++;
     } else throw '谱面中存在不受支持的扫线方向。';
-    if (isNullish(previousEndTick)) previousEndTick = end_tick;
     const pageLength = end_tick - start_tick;
     if (isNullish(previousPageLength)) previousPageLength = pageLength;
     const pageLengthRatio = previousPageLength / pageLength * previousPageLengthRatio;
