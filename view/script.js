@@ -276,44 +276,52 @@ async function viewChart(chart) {
         switch (note.type) {
           case Type.CLICK:
             statistic.note.click++;
-            noteGroup.innerHTML += `<g class="note click"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(175,198,206)' : 'rgb(175,190,206)'}" r="29" stroke="${page.direction === 1 ? 'rgb(23,24,34)' : 'rgb(23,24,34)'}" stroke-width="4"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="20.5" stroke="${page.direction === 1 ? 'rgb(29,133,122)' : 'rgb(29,118,143)'}" stroke-width="5"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(204,255,242)' : 'rgb(204,255,255)'}" r="9"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note click"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(175,198,206)' : 'rgb(175,190,206)'}" r="29" stroke="${page.direction === 1 ? 'rgb(23,24,34)' : 'rgb(23,24,34)'}" stroke-width="4"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="20.5" stroke="${page.direction === 1 ? 'rgb(29,133,122)' : 'rgb(29,118,143)'}" stroke-width="5"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(204,255,242)' : 'rgb(204,255,255)'}" r="9"></circle>`;
             break;
           case Type.HOLD:
             statistic.note.hold++;
-            noteGroup.innerHTML += `<g class="note hold"><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-dasharray="4,4" stroke-width="23"></line><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="30" stroke="rgb(23,24,34)" stroke-width="6"></circle><rect fill="rgb(255,255,255)" height="4" width="66" x="${x - 33}" y="${y - 2}"></rect><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="19" stroke="${page.direction === 1 ? 'rgb(198,105,161)' : 'rgb(198,105,123)'}" stroke-width="6"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note hold"><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-dasharray="4,4" stroke-width="23"></line><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="30" stroke="rgb(23,24,34)" stroke-width="6"></circle><rect fill="rgb(255,255,255)" height="4" width="66" x="${x - 33}" y="${y - 2}"></rect><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="19" stroke="${page.direction === 1 ? 'rgb(198,105,161)' : 'rgb(198,105,123)'}" stroke-width="6"></circle>`;
             break;
           case Type.LONG_HOLD:
             statistic.note.long_hold++;
-            noteGroup.innerHTML += `<g class="note long-hold"><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="30" stroke="rgb(23,24,34)" stroke-width="6"></circle><rect x="${x - 34}" y="${y - 2}" height="4" width="67" fill="rgb(255,255,255)"></rect><circle cx="${x}" cy="${y}" fill="rgb(255,204,102)" r="22"></circle><rect x="${x - 7}" y="${y - 23}" height="46" width="14" fill="rgb(255,255,255)"></rect></g>`;
+            noteGroup.innerHTML += `<g class="note long-hold"><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="30" stroke="rgb(23,24,34)" stroke-width="6"></circle><rect x="${x - 34}" y="${y - 2}" height="4" width="67" fill="rgb(255,255,255)"></rect><circle cx="${x}" cy="${y}" fill="rgb(255,204,102)" r="22"></circle><rect x="${x - 7}" y="${y - 23}" height="46" width="14" fill="rgb(255,255,255)"></rect>`;
             break;
           case Type.LONG_HOLD_BODY:
             noteGroup.innerHTML += `<g class="long-hold-body"><line x1="${x - 15}" x2="${x - 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x + 15}" x2="${x + 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="rgb(255,204,102)" stroke-width="20" stroke-dasharray="4,4"></line>`
             if (note.ended) noteGroup.innerHTML += `<line x1="${x - 20}" x2="${x + 20}" y1="${endY}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="5"></line>`
-            noteGroup.innerHTML += `</g>`;
             break;
           case Type.DRAG:
             statistic.note.drag++;
-            noteGroup.innerHTML += `<g class="note drag"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(182,180,203)'}" r="23" stroke="rgb(23,24,34)" stroke-width="3"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(170,102,255)' : 'rgb(246,102,255)'}" r="16" stroke="rgb(23,24,34)" stroke-width="4"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note drag"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(172,180,203)'}" r="23" stroke="rgb(23,24,34)" stroke-width="3"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(170,102,255)' : 'rgb(246,102,255)'}" r="16" stroke="rgb(23,24,34)" stroke-width="4"></circle>`;
             break;
           case Type.DRAG_CHILD:
             statistic.note.drag_child++;
-            noteGroup.innerHTML += `<g class="note drag-child"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(172,180,203)'}" r="12" stroke="rgb(23,24,34)" stroke-width="2"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(170,102,255)' : 'rgb(246,102,255)'}" r="8" stroke="rgb(23,24,34)" stroke-width="2"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note drag-child"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(172,180,203)'}" r="12" stroke="rgb(23,24,34)" stroke-width="2"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(170,102,255)' : 'rgb(246,102,255)'}" r="8" stroke="rgb(23,24,34)" stroke-width="2"></circle>`;
             break;
           case Type.FLICK:
             statistic.note.flick++;
-            noteGroup.innerHTML += `<g class="note flick"><line x1="${x - 35}" x2="${x - 8}" y1="${y}" y2="${y + 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x - 35}" x2="${x - 8}" y1="${y}" y2="${y - 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x + 35}" x2="${x + 8}" y1="${y}" y2="${y + 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x + 35}" x2="${x + 8}" y1="${y}" y2="${y - 28}" stroke="rgb(255,255,255)" stroke-width="2" /><polygon points="${x - 5},${y - 24} ${x - 26},${y - 3} ${x - 26},${y + 3} ${x - 5},${y + 24} ${x + 5},${y + 24} ${x + 26},${y + 3} ${x + 26},${y - 3} ${x + 5},${y - 24}" fill="${page.direction === 1 ? 'rgb(39,191,141)' : 'rgb(41,170,220)'}" /><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="11" /><polygon points="${x - 8},${y - 7.5} ${x},${y - 15.5} ${x + 8},${y - 7.5} ${x + 8},${y + 7.5} ${x},${y + 15.5} ${x - 8},${y + 7.5}" fill="rgb(255,255,255)" /><rect x="${x - 2}" y="${y - 18}" fill="${page.direction === 1 ? 'rgb(39,191,141)' : 'rgb(41,170,220)'}" height="37" width="4" /><polygon points="${x - 2},${y - 28} ${x - 27},${y - 3} ${x - 27},${y + 3} ${x - 2},${y + 28} ${x - 2},${y + 23} ${x - 22},${y + 3} ${x - 22},${y - 3} ${x - 2},${y - 23}" fill="rgb(255,255,255)" /><polygon points="${x + 2},${y - 28} ${x + 27},${y - 3} ${x + 27},${y + 3} ${x + 2},${y + 28} ${x + 2},${y + 23} ${x + 22},${y + 3} ${x + 22},${y - 3} ${x + 2},${y - 23}" fill="rgb(255,255,255)" /></g>`;
+            noteGroup.innerHTML += `<g class="note flick"><line x1="${x - 35}" x2="${x - 8}" y1="${y}" y2="${y + 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x - 35}" x2="${x - 8}" y1="${y}" y2="${y - 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x + 35}" x2="${x + 8}" y1="${y}" y2="${y + 28}" stroke="rgb(255,255,255)" stroke-width="2" /><line x1="${x + 35}" x2="${x + 8}" y1="${y}" y2="${y - 28}" stroke="rgb(255,255,255)" stroke-width="2" /><polygon points="${x - 5},${y - 24} ${x - 26},${y - 3} ${x - 26},${y + 3} ${x - 5},${y + 24} ${x + 5},${y + 24} ${x + 26},${y + 3} ${x + 26},${y - 3} ${x + 5},${y - 24}" fill="${page.direction === 1 ? 'rgb(39,191,141)' : 'rgb(41,170,220)'}" /><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="11" /><polygon points="${x - 8},${y - 7.5} ${x},${y - 15.5} ${x + 8},${y - 7.5} ${x + 8},${y + 7.5} ${x},${y + 15.5} ${x - 8},${y + 7.5}" fill="rgb(255,255,255)" /><rect x="${x - 2}" y="${y - 18}" fill="${page.direction === 1 ? 'rgb(39,191,141)' : 'rgb(41,170,220)'}" height="37" width="4" /><polygon points="${x - 2},${y - 28} ${x - 27},${y - 3} ${x - 27},${y + 3} ${x - 2},${y + 28} ${x - 2},${y + 23} ${x - 22},${y + 3} ${x - 22},${y - 3} ${x - 2},${y - 23}" fill="rgb(255,255,255)" /><polygon points="${x + 2},${y - 28} ${x + 27},${y - 3} ${x + 27},${y + 3} ${x + 2},${y + 28} ${x + 2},${y + 23} ${x + 22},${y + 3} ${x + 22},${y - 3} ${x + 2},${y - 23}" fill="rgb(255,255,255)" />`;
             break;
           case Type.CLICK_DRAG:
             statistic.note.click_drag++;
-            noteGroup.innerHTML += `<g class="note click"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(175,198,206)' : 'rgb(175,190,206)'}" r="29" stroke="${page.direction === 1 ? 'rgb(23,24,34)' : 'rgb(23,24,34)'}" stroke-width="4"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="20.5" stroke="${page.direction === 1 ? 'rgb(29,133,122)' : 'rgb(29,118,143)'}" stroke-width="5"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(204,255,242)' : 'rgb(204,255,255)'}" r="9"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note click"><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(175,198,206)' : 'rgb(175,190,206)'}" r="29" stroke="${page.direction === 1 ? 'rgb(23,24,34)' : 'rgb(23,24,34)'}" stroke-width="4"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="20.5" stroke="${page.direction === 1 ? 'rgb(29,133,122)' : 'rgb(29,118,143)'}" stroke-width="5"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(204,255,242)' : 'rgb(204,255,255)'}" r="9"></circle>`;
             break;
           case Type.CLICK_DRAG_CHILD:
             statistic.note.click_drag_child++;
-            noteGroup.innerHTML += `<g class="note click-drag-child"><circle cx="${x}" cy="${y}" fill="rgb(175,190,206)" r="12" stroke="rgb(23,24,34)" stroke-width="2"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="8" stroke="rgb(23,24,34)" stroke-width="2"></circle></g>`;
+            noteGroup.innerHTML += `<g class="note click-drag-child"><circle cx="${x}" cy="${y}" fill="rgb(175,190,206)" r="12" stroke="rgb(23,24,34)" stroke-width="2"></circle><circle cx="${x}" cy="${y}" fill="${page.direction === 1 ? 'rgb(153,255,229)' : 'rgb(153,255,255)'}" r="8" stroke="rgb(23,24,34)" stroke-width="2"></circle>`;
             break;
           default:
             throw '谱面中存在不受支持的音符类型。';
         }
+        if (note.type === Type.DRAG) {
+          const next = notes[note.next_id];
+          if (next) {
+            const [dx, dy] = getCoor(next, pages[next.page_index]);
+            const angle = Math.atan2(dy - y, dx - x) * (180 / Math.PI);
+            noteGroup.innerHTML += `<polygon points="${x - 8},${y + 6} ${x},${y} ${x + 8},${y + 6} ${x},${y - 8} " fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(172,180,203)'}" transform="rotate(${angle + 90},${x},${y})" />`;
+          }
+        }
+        noteGroup.innerHTML += `</g>`;
       }
 
       for (const note of longHolds) {
