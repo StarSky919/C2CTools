@@ -7,7 +7,8 @@ import {
   sleep,
   createElement,
   clearChildNodes,
-  loadJSON
+  loadJSON,
+  downloadFile
 } from '/src/utils.js';
 
 function tempoToBPM(tempo) {
@@ -393,8 +394,7 @@ container.addEventListener('click', async event => {
   img.src = `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(el))}`;
   img.addEventListener('load', () => {
     ctx.drawImage(img, 0, 0, cav.width, cav.height);
-    const url = cav.toDataURL();
-    createElement('a', { download: `${Date.now()}.png`, href: url }).click();
+    cav.toBlob(blob => downloadFile(`${Date.now()}.png`, blob));
   });
 });
 
