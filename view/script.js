@@ -408,19 +408,23 @@ $('switch-ghost').addEventListener('click', () => {
 
 const cols = [1, 2, 3, 4, 6, 8];
 let idx = 1;
+const setChartBox = (charts, col) => charts.forEach(chart => {
+  chart.style.padding = `${2 / col * 0.5}rem`;
+  chart.style.width = `${100 / col}%`;
+});
 $('zoom-in').addEventListener('click', () => {
   const charts = $$('.chart');
   if (!charts) return;
   idx--;
   if (idx < 0) idx = 0;
-  charts.forEach(chart => chart.style.width = `${100 / cols[idx]}%`);
+  setChartBox(charts, cols[idx]);
 });
 $('zoom-out').addEventListener('click', () => {
   const charts = $$('.chart');
   if (!charts) return;
   idx++;
   if (idx > cols.length - 1) idx = cols.length - 1;
-  charts.forEach(chart => chart.style.width = `${100 / cols[idx]}%`);
+  setChartBox(charts, cols[idx]);
 });
 
 const fileInput = $('import-chart');
