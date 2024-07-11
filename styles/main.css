@@ -121,7 +121,11 @@ a {
   transition: color 0.25s;
 }
 
-a:hover {
+a.button {
+  text-decoration: none;
+}
+
+a:not(.button):hover {
   color: var(--theme-color);
 }
 
@@ -200,31 +204,10 @@ hr {
   }
 }
 
-.progress {
-  --progress: 0%;
-
-  overflow: hidden;
-  position: relative;
-  width: 50%;
-  height: 0.3rem;
-  background: var(--background-color-third);
-}
-
-.progress::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: calc(100% - var(--progress));
-  width: 100%;
-  height: 100%;
-  background: var(--text-color);
-  transition: right 0.2s;
-}
-
 .button {
   flex: 1;
   display: inline-block;
-  padding: 0.65rem 0;
+  padding: 0.5rem 0;
   position: relative;
   color: var(--text-color);
   background: var(--background-color-second);
@@ -336,8 +319,18 @@ main>* {
   display: none;
 }
 
-.row .button:not(:last-child) {
+.row .button:not(:last-child),
+.row .margin:not(:last-child) {
   margin-right: 0.8rem;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  margin: 0;
+  padding: 0.65rem 0;
+  background: var(--background-color);
+  z-index: 1;
 }
 
 /*----------------*/

@@ -6,20 +6,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
   <meta name="renderer" content="webkit" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
-  <link rel="icon" href="/logo.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="/logo.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="/style/themify-icons.css">
-  <link rel="stylesheet" href="/style/fontface.css">
-  <link rel="stylesheet" href="/main.css" type="text/css" />
+  <link rel="shortcut icon" href="/assets/logo.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/styles/themify-icons.css">
+  <link rel="stylesheet" href="/styles/fontface.css">
+  <link rel="stylesheet" href="/styles/main.css" type="text/css" />
   <style>
-    .sticky {
-      position: sticky;
-      top: 0;
-      margin: 0;
-      padding: 0.65rem 0;
-      background: var(--background-color);
-    }
-
     #container {
       display: flex;
       flex-wrap: wrap;
@@ -64,6 +55,27 @@
       opacity: 0;
       pointer-events: none;
     }
+
+    .progress {
+      --progress: 0%;
+
+      overflow: hidden;
+      position: relative;
+      width: 50%;
+      height: 0.3rem;
+      background: var(--background-color-third);
+    }
+
+    .progress::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: calc(100% - var(--progress));
+      width: 100%;
+      height: 100%;
+      background: var(--text-color);
+      transition: right 0.2s;
+    }
   </style>
   <title>谱面预览器 | C2CTools</title>
 </head>
@@ -77,18 +89,18 @@
     <p>您的浏览器内核版本过低，无法支持网站功能的正常运行。请升级/更换浏览器或是等待本站的兼容性更新。</p>
   </div>
   <main>
-    <h2>Cytus II谱面预览器</h2>
+    <h2>Cytus II 谱面预览器</h2>
     <div class="row sticky">
       <span>
         <input type="file" id="import-chart" style="display: none;" />
-        <label class="button small" for="import-chart"><i class="ti-file"></i></label>
-        <span class="button small" id="show-statistic"><i class="ti-bar-chart"></i></span>
-        <span class="button small" id="jump-to-page"><i class="ti-location-pin"></i></span>
+        <label class="c button small" for="import-chart"><i class="ti-file"></i></label>
+        <span class="c button small" id="show-statistic"><i class="ti-bar-chart"></i></span>
+        <span class="c button small" id="jump-to-page"><i class="ti-location-pin"></i></span>
       </span>
       <span>
-        <span class="button small" id="switch-ghost"><i class="ti-eye"></i></span>
-        <span class="button small" id="zoom-out"><i class="ti-zoom-out"></i></span>
-        <span class="button small" id="zoom-in"><i class="ti-zoom-in"></i></span>
+        <span class="c button small" id="switch-ghost"><i class="ti-eye"></i></span>
+        <span class="c button small" id="zoom-out"><i class="ti-zoom-out"></i></span>
+        <span class="c button small" id="zoom-in"><i class="ti-zoom-in"></i></span>
       </span>
     </div>
     <div id="container"></div>
@@ -98,27 +110,17 @@
     <p id="progress" class="progress"></p>
     <div id="progress-count"></div>
   </div>
-  <template id="dialog-template">
-    <div class="dialog-container hidden">
-      <div class="dialog-mask"></div>
-      <div class="dialog-box">
-        <div class="title"></div>
-        <div class="content"></div>
-        <div class="buttons"></div>
-      </div>
-    </div>
-  </template>
   <script>
     try {
       fetch;
-      eval('async function test() {}');
-      [].push(...[]);
       XMLSerializer;
+      eval('async () => {}');
+      [].push(...[]);
     } catch (err) {
       document.querySelector('.warning.hidden').classList.remove('hidden');
     }
   </script>
-  <script src="/view/script.js" type="module"></script>
+  <script src="./script.js" type="module"></script>
 </body>
 
 </html>

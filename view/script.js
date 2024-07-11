@@ -4,11 +4,9 @@ import {
   Time,
   isNullish,
   inRange,
-  sleep,
   createElement,
   clearChildNodes,
-  loadJSON,
-  downloadFile
+  downloadFile,
 } from '/src/utils.js';
 
 function tempoToBPM(tempo) {
@@ -28,8 +26,8 @@ const Type = {
   CLICK_DRAG: 6,
   CLICK_DRAG_CHILD: 7,
   DROP_CLICK: 8,
-  DROP_DRAG: 9
-}
+  DROP_DRAG: 9,
+};
 
 const container = $('container');
 const loading = $('loading');
@@ -42,24 +40,24 @@ function preprocess({
   page_list,
   event_order_list,
   tempo_list,
-  note_list
+  note_list,
 }) {
   statistic = {
     page: {
       total: page_list.length,
       up: 0,
-      down: 0
+      down: 0,
     },
     tempo: {
       total: tempo_list.length,
       up: 0,
-      down: 0
+      down: 0,
     },
     event: {
       total: event_order_list.length,
       tempo: 0,
       ui: 0,
-      text: 0
+      text: 0,
     },
     note: {
       total: note_list.length,
@@ -72,8 +70,8 @@ function preprocess({
       click_drag: 0,
       click_drag_child: 0,
       left: 0,
-      right: 0
-    }
+      right: 0,
+    },
   };
 
   const pages = [];
@@ -112,7 +110,7 @@ function preprocess({
       direction: scan_line_direction,
       PositionFunction: PositionFunction || { Type: 0, Arguments: [1, 0] },
       scaleChanged,
-      bpmInPage: {}
+      bpmInPage: {},
     });
     previousPageScale = pageScale;
     previousPageLength = pageLength;
@@ -135,7 +133,7 @@ function preprocess({
     if (type === 8) statistic.event.text++;
   });
 
-  note_list.forEach(({ type, id, next_id }, index) => {
+  note_list.forEach(({ type, id, next_id }) => {
     if (![Type.DRAG, Type.DRAG_CHILD, Type.CLICK_DRAG, Type.CLICK_DRAG_CHILD].includes(type)) return;
     if (next_id <= 0) return;
     note_list[next_id].previous_id = id;
@@ -143,7 +141,7 @@ function preprocess({
 
   for (const page of pages) {
     const tempoInPage = tempo_list.filter(tempo => (tempo.tick <= page.tick && tempo.end > page.tick) || (tempo.tick >= page.tick && tempo.tick < page.end));
-    const { Type: type, Arguments: args } = page.PositionFunction;
+    const { Arguments: args } = page.PositionFunction;
     if (page.lengthChanged || page.scaleChanged) page.bpmInPage[page.tick] = tempoToBPM(tempoInPage.shift().value) * page.lengthRatio * args[0];
     for (const tempo of tempoInPage) page.bpmInPage[tempo.tick] = tempoToBPM(tempo.value) * page.lengthRatio * args[0];
   }
@@ -155,7 +153,7 @@ function preprocess({
     tick,
     hold_tick: length,
     x,
-    ended
+    ended,
   });
   for (const { id, tick, x, page_index, hold_tick } of note_list.filter(note => note.type === Type.LONG_HOLD)) {
     if (tick + hold_tick > pages[page_index].end) {
@@ -181,7 +179,7 @@ function preprocess({
   return {
     pages,
     notes: note_list,
-    longHolds
+    longHolds,
   };
 }
 
@@ -192,7 +190,7 @@ async function viewChart(chart) {
     progressPercentage.style.setProperty('--progress', '0%');
     progressCount.innerText = `0 / ${pages.length}`;
     loading.classList.remove('hidden');
-    await sleep(Time.second * 0.5);
+    await Time.sleep(Time.second * 0.5);
     clearChildNodes(container);
 
     const top = 50;
@@ -204,13 +202,13 @@ async function viewChart(chart) {
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
 
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 512 384');
 
       svg.innerHTML += '<rect height="384" width="512" x="0" y="0" />';
       svg.innerHTML += `<text fill="#FFFFFF" font-family="Electrolize" font-size="24" font-weight="bold" text-anchor="start" dominant-baseline="hanging" x="10.24" y="7.68">${page.index}</text>`;
 
-      const { Type: type, Arguments: args } = page.PositionFunction;
+      const { Arguments: args } = page.PositionFunction;
       const h = args[0] * height;
       const p = (args[1] * -1 + 1) / 2;
       const y1 = height * p - h / 2 + top;
@@ -261,18 +259,18 @@ async function viewChart(chart) {
         svg.innerHTML += `<polygon fill="url(#${page.index})" points="0,307 0,87 16,87 16,252 32,252" />`;
       }
 
-      const ghost = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+      const ghost = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       ghost.classList.add('ghost');
       ghost.setAttribute('opacity', '0.3');
       svg.appendChild(ghost);
 
-      const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+      const noteGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       svg.appendChild(noteGroup);
 
       function drawNote(note) {
         if (note.x < 0.5) statistic.note.left++;
         else if (note.x > 0.5) statistic.note.right++;
-        const [x, y] = getCoor(note, page)
+        const [x, y] = getCoor(note, page);
         const hold = note.hold_tick / page.length * (y2 - y1);
         const endY = y + page.direction * -1 * hold;
         switch (note.type) {
@@ -289,8 +287,8 @@ async function viewChart(chart) {
             noteGroup.innerHTML += `<g class="note long-hold"><circle cx="${x}" cy="${y}" fill="rgb(255,255,255)" r="30" stroke="rgb(23,24,34)" stroke-width="6"></circle><rect x="${x - 34}" y="${y - 2}" height="4" width="67" fill="rgb(255,255,255)"></rect><circle cx="${x}" cy="${y}" fill="rgb(255,204,102)" r="22"></circle><rect x="${x - 7}" y="${y - 23}" height="46" width="14" fill="rgb(255,255,255)"></rect>`;
             break;
           case Type.LONG_HOLD_BODY:
-            noteGroup.innerHTML += `<g class="long-hold-body"><line x1="${x - 15}" x2="${x - 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x + 15}" x2="${x + 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="rgb(255,204,102)" stroke-width="20" stroke-dasharray="4,4"></line>`
-            if (note.ended) noteGroup.innerHTML += `<line x1="${x - 20}" x2="${x + 20}" y1="${endY}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="5"></line>`
+            noteGroup.innerHTML += `<g class="long-hold-body"><line x1="${x - 15}" x2="${x - 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x + 15}" x2="${x + 15}" y1="${y}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="4"></line><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="rgb(255,204,102)" stroke-width="20" stroke-dasharray="4,4"></line>`;
+            if (note.ended) noteGroup.innerHTML += `<line x1="${x - 20}" x2="${x + 20}" y1="${endY}" y2="${endY}" stroke="rgb(255,255,255)" stroke-width="5"></line>`;
             break;
           case Type.DRAG:
             statistic.note.drag++;
@@ -367,10 +365,10 @@ async function viewChart(chart) {
       container.appendChild(createElement('div', { classList: ['chart'], dataset: { index: page.index } }, [svg]));
       progressPercentage.style.setProperty('--progress', `${(i + 1) / pages.length * 100}%`);
       progressCount.innerText = `${(i + 1)} / ${pages.length}`;
-      await sleep(0);
+      await Time.sleep(0);
     }
 
-    await sleep(Time.second * 0.5);
+    await Time.sleep(Time.second * 0.5);
   } catch (err) {
     clearChildNodes(container);
     alert(`谱面加载失败：\n${err}`);
@@ -438,7 +436,7 @@ fileInput.addEventListener('change', event => {
     try {
       viewChart(JSON.parse(event.target.result));
     } catch (err) {
-      alert('文件读取失败，可能是上传了错误的文件或谱面中存在当前不受支持的元素。')
+      alert('文件读取失败，可能是上传了错误的文件或谱面中存在当前不受支持的元素。');
     }
   });
   reader.readAsText(event.target.files[0]);
@@ -456,10 +454,10 @@ $('jump-to-page').addEventListener('click', async () => {
   if (isNullish(input)) return;
   const page = Number(input);
   if (isNaN(page) || !inRange(page, 0, statistic.page.total)) return alert('请输入正确的页码！');
-  await sleep(Time.second * 0.5);
+  await Time.sleep(Time.second * 0.5);
   const node = $$(`.chart[data-index="${page}"]`);
   window.scrollTo({
     top: node.offsetTop + node.offsetHeight * 0.5 - window.innerHeight / 2,
-    behavior: 'smooth'
+    behavior: 'smooth',
   });
 });

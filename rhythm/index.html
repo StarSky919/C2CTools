@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
+  <link rel="shortcut icon" href="/assets/logo.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/styles/themify-icons.css">
+  <link rel="stylesheet" href="/styles/fontface.css">
+  <link rel="stylesheet" href="/styles/main.css" type="text/css" />
+  <style>
+    #container {
+      display: flex;
+      justify-content: center;
+    }
+
+    #event-list-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chart-info.hidden {
+      display: none;
+    }
+
+    #event-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #event-list>* {
+      display: flex;
+      align-items: center;
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    #event-list>:last-child {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    #event-list>*>span {
+      white-space: nowrap;
+      overflow-x: scroll;
+    }
+
+    #event-list>*>span:not(:last-child) {
+      flex: 1;
+      margin-right: 0.8rem;
+    }
+
+    #event-list:empty {
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      padding: 0.65rem 0;
+    }
+
+    #event-list:empty::before {
+      content: "┐(￣ヘ￣)┌";
+    }
+  </style>
+  <title>谱面节奏解析 | C2CTools</title>
+</head>
+
+<body>
+  <noscript class="warning">
+    <p>您的浏览器未启用或不支持JavaScript，无法使用本网站。</p>
+    <p>Your browser isn't enabled or doesn't support JavaScript. Please check and try again.</p>
+  </noscript>
+  <div class="warning hidden">
+    <p>您的浏览器内核版本过低，无法支持网站功能的正常运行。请升级/更换浏览器或是等待本站的兼容性更新。</p>
+  </div>
+  <main>
+    <h2>Cytus II 谱面节奏解析</h2>
+    <div class="row">
+      <span>
+        <input type="file" id="import-chart" style="display: none;" />
+        <label class="button small" for="import-chart"><i class="ti-file"></i></label>
+        <input type="file" id="import-video" style="display: none;" />
+        <label class="button small" for="import-video"><i class="ti-video-clapper"></i></label>
+        <span class="button small" id="set-offset"><i class="ti-settings"></i></span>
+      </span>
+      <span>
+        <span class="button small" id="fullscreen"><i class="ti-fullscreen"></i></span>
+      </span>
+    </div>
+    <div id="container"></div>
+    <div id="event-list-container">
+      <h3>BPM & 页长变化列表</h3>
+      <div id="chart-info" class="row sticky hidden">
+        <span>
+          <span class="margin">时基：<span class="value">--</span></span>
+        </span>
+        <span>
+          <span class="button small" id="apply"><i class="ti-check"></i></span>
+        </span>
+      </div>
+      <div id="event-list"></div>
+    </div>
+  </main>
+  <script>
+    try {
+      fetch;
+      eval('async () => {}');
+      [].push(...[]);
+    } catch (err) {
+      document.querySelector('.warning.hidden').classList.remove('hidden');
+    }
+  </script>
+  <script src="./script.js" type="module"></script>
+</body>
+
+</html>

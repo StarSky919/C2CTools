@@ -1,33 +1,40 @@
 window.log = console.log;
-Promise.stop = value => new Promise(() => { Promise.resolve(value) });
-
-export const $ = id => document.getElementById(id);
-export function $$(selector) {
-  try {
-    const nodes = document.querySelectorAll(selector);
-    return nodes.length > 1 ? nodes : nodes[0];
-  } catch (e) {
-    return null;
-  }
-}
-Node.prototype.$$ = function(selector) {
-  try {
-    const nodes = this.querySelectorAll(selector);
-    return nodes.length > 1 ? nodes : nodes[0];
-  } catch (e) {
-    return null;
-  }
-}
+Promise.stop = value => new Promise(() => Promise.resolve(value));
 
 export function noop() {}
 
+export const $ = id => document.getElementById(id);
+export function $$(node, selector) {
+  if (!selector) {
+    selector = node;
+    node = document;
+  }
+  try {
+    const nodes = node.querySelectorAll(selector);
+    return nodes.length > 1 ? nodes : nodes[0];
+  } catch (e) {
+    return null;
+  }
+}
+
 const p0 = (num, length = 2) => num.toString().padStart(length, '0');
+
 const millisecond = 1;
-const second = 1000;
+const second = millisecond * 1e3;
 const minute = second * 60;
 const hour = minute * 60;
 const day = hour * 24;
 const week = day * 7;
+
+const numeric = /\d+(?:\.\d+)?/.source;
+const timeRegExp = new RegExp(`^${[
+  'w(?:eek(?:s)?)?',
+  'd(?:ay(?:s)?)?',
+  'h(?:our(?:s)?)?',
+  'm(?:in(?:ute)?(?:s)?)?',
+  's(?:ec(?:ond)?(?:s)?)?',
+].map(unit => `(${numeric}${unit})?`).join('')}$`);
+
 export const Time = {
   millisecond,
   second,
@@ -35,19 +42,31 @@ export const Time = {
   hour,
   day,
   week,
-  template(template, timestamp) {
-    const time = new Date(timestamp);
-    return template
-      .replace('yyyy', time.getFullYear().toString())
-      .replace('yy', time.getFullYear().toString().slice(2))
-      .replace('MM', p0(time.getMonth() + 1))
-      .replace('dd', p0(time.getDate()))
-      .replace('hh', p0(time.getHours()))
-      .replace('mm', p0(time.getMinutes()))
-      .replace('ss', p0(time.getSeconds()))
-      .replace('SSS', p0(time.getMilliseconds(), 3));
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   },
-  formatTimeInterval(ms) {
+  template(template, date = new Date()) {
+    if (typeof date === 'number') date = new Date(date);
+    return template
+      .replace('yyyy', date.getFullYear())
+      .replace('yy', date.getFullYear().toString().slice(2))
+      .replace('MM', p0(date.getMonth() + 1))
+      .replace('dd', p0(date.getDate()))
+      .replace('hh', p0(date.getHours()))
+      .replace('mm', p0(date.getMinutes()))
+      .replace('ss', p0(date.getSeconds()))
+      .replace('SSS', p0(date.getMilliseconds(), 3));
+  },
+  format(ms, ex) {
+    if (ex) {
+      let seconds = Math.abs(ms) / 1000;
+      const s = Math.floor(seconds % 60);
+      seconds = seconds / 60;
+      const m = Math.floor(seconds % 60);
+      seconds = seconds / 60;
+      const h = Math.floor(seconds);
+      return `${p0(h)}:${p0(m)}:${p0(s)}`;
+    }
     const abs = Math.abs(ms);
     if (abs >= day - hour / 2) {
       return Math.round(ms / day) + 'd';
@@ -59,14 +78,32 @@ export const Time = {
       return Math.round(ms / second) + 's';
     }
     return ms + 'ms';
-  }
-}
+  },
+  parseTime(source) {
+    const capture = timeRegExp.exec(source);
+    if (!capture) return 0;
+    return (parseFloat(capture[1]) * week || 0) +
+      (parseFloat(capture[2]) * day || 0) +
+      (parseFloat(capture[3]) * hour || 0) +
+      (parseFloat(capture[4]) * minute || 0) +
+      (parseFloat(capture[5]) * second || 0);
+  },
+  startOfDay(timestamp = Date.now()) {
+    return new Date(timestamp).setHours(0, 0, 0, 0);
+  },
+  startOfWeek(timestamp = Date.now()) {
+    const day = new Date(timestamp).getDay();
+    const passedDays = day === 0 ? 6 : day - 1;
+    return this.startOfDay(timestamp) - this.day * passedDays;
+  },
+};
 
 export const Random = {
   integer(min, max) {
-    return function() {
-      return Math.floor(Math.random() * (max - min + 1) + min)
-    }
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
+  create(min, max) {
+    return () => Random.integer(min, max);
   },
   uuid() {
     const result = [];
@@ -83,7 +120,7 @@ export const Random = {
     const temp = arr.slice();
     const result = [];
     for (let i = temp.length; i > 0; --i) {
-      result.push(temp.splice(Random.integer(0, i - 1)(), 1)[0]);
+      result.push(temp.splice(Random.integer(0, i - 1), 1)[0]);
     }
     return result;
   },
@@ -91,9 +128,9 @@ export const Random = {
     if (count > 1) {
       return Random.shuffle(arr).slice(0, count);
     }
-    return arr[Random.integer(0, arr.length)()];
-  }
-}
+    return arr[Random.integer(0, arr.length - 1)];
+  },
+};
 
 function getTag(source) {
   return Object.prototype.toString.call(source);
@@ -155,6 +192,10 @@ export function inRange(num, min, max) {
   return (num - min) * (num - max) <= 0;
 }
 
+export function isPowerOfTwo(n) {
+  return Number.isInteger(n) && n > 0 && (n & (n - 1)) === 0;
+}
+
 export function* range(min, max, step = 1) {
   if (isNullish(max)) max = min, min = 0;
   for (let i = min; i < max; i += step) {
@@ -169,37 +210,19 @@ export function* enumerate(iterable) {
   }
 }
 
-export function staggeredMerge(target, offset, ...sources) {
-  const result = [];
-  result.push(...target.splice(0, offset));
-  const maxCount = Math.max(target.length, ...sources.reduce((p, c) => {
-    p.push(c.length);
-    return p;
-  }, []));
-  for (const i of range(maxCount)) {
-    for (const arr of [target, ...sources]) {
-      result.push(isNullish(arr[i]) ? null : arr[i]);
-    }
-  }
-  return result;
+export function rounding(num, digits = 0, toFixed) {
+  const value = Math.round(num * (10 ** digits)) / (10 ** digits);
+  return toFixed ? value.toFixed(digits) : value;
 }
 
-export function random(min, max) {
-  return () => Math.round(Math.random() * (max - min) + min);
+export function flooring(num, digits = 0, toFixed) {
+  const value = Math.floor(num * (10 ** digits)) / (10 ** digits);
+  return toFixed ? value.toFixed(digits) : value;
 }
 
-export function rounding(num, digit = 0) {
-  return +(Math.round(num * (10 ** digit)) / 10 ** digit).toFixed(digit);
-}
-
-export function flooring(num, digit = 0) {
-  return +(Math.floor(num * (10 ** digit)) / 10 ** digit).toFixed(digit);
-}
-
-export function sleep(delay) {
-  return new Promise(function(resolve) {
-    setTimeout(resolve, delay);
-  });
+export function ceiling(num, digits = 0, toFixed) {
+  const value = Math.ceil(num * (10 ** digits)) / (10 ** digits);
+  return toFixed ? value.toFixed(digits) : value;
 }
 
 export function debounce(callback, delay) {
@@ -228,20 +251,61 @@ export function throttle(callback, delay) {
   }
 }
 
-export function cached(fn) {
-  const cache = Object.create(null);
-  return function(str) {
-    const key = isPrimitive(str) ? str : JSON.stringify(str);
-    const hit = cache[key];
-    return hit || (cache[key] = fn(str));
-  };
+export function pick(source, keys, forced) {
+  if (!keys) return { ...source };
+  const result = {};
+  for (const key of keys) {
+    if (forced || source[key] !== undefined) result[key] = source[key];
+  }
+  return result;
 }
 
-export function createElement(tag, props = {}, children = []) {
+export function makeArray(source) {
+  return Array.isArray(source) ? source : isNullish(source) ? [] : [source];
+}
+
+export function search(array, value, prop) {
+  let beginning = 0;
+  const len = array.length;
+  let end = len;
+  if (len > 0 && array[len - 1][prop] <= value) {
+    return len - 1;
+  }
+  while (beginning < end) {
+    let midPoint = Math.floor(beginning + (end - beginning) / 2);
+    const event = array[midPoint];
+    const nextEvent = array[midPoint + 1];
+    if (event[prop] === value) {
+      for (let i = midPoint; i < array.length; i++) {
+        const testEvent = array[i];
+        if (testEvent[prop] === value) {
+          midPoint = i;
+        }
+      }
+      return midPoint;
+    } else if (event[prop] < value && nextEvent[prop] > value) {
+      return midPoint;
+    } else if (event[prop] > value) {
+      end = midPoint;
+    } else if (event[prop] < value) {
+      beginning = midPoint + 1;
+    }
+  }
+  return -1;
+}
+
+export function createElement(tag, props = {}, children) {
+  if (Array.isArray(props) || props instanceof Element) {
+    children = props;
+    props = {};
+  }
+  children = makeArray(children);
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(props)) switch (key) {
     case 'classList':
-      el.classList.add(...value);
+      if (typeof value === 'string') {
+        el.classList.add(...value.split(' '));
+      } else el.classList.add(...value);
       break;
     case 'style':
     case 'dataset':
@@ -251,27 +315,12 @@ export function createElement(tag, props = {}, children = []) {
       if (key in el) el[key] = value;
       else el.setAttribute(key, value);
   }
-  if (children)
-    for (const child of children) el.appendChild(child);
+  for (const child of children) el.appendChild(child);
   return el;
 }
 
 export function clearChildNodes(node) {
   for (let i = node.childNodes.length; i--;) node.removeChild(node.childNodes[i]);
-}
-
-export function blurAll() {
-  const temp = createElement('input', {
-    style: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      opacity: 0
-    }
-  });
-  document.body.appendChild(temp);
-  temp.focus();
-  document.body.removeChild(temp);
 }
 
 export function compile(node, data) {
@@ -287,11 +336,6 @@ export function compile(node, data) {
   }
   node.childNodes.forEach(node => compile(node, data));
   return node;
-}
-
-export function bindOnClick(el, func) {
-  if (typeof el === 'string') el = $(el);
-  el.addEventListener('click', func);
 }
 
 export async function loadJSON(url) {
@@ -312,5 +356,5 @@ export function downloadFile(name, blob) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  sleep(Time.second * 0.5).then(() => URL.revokeObjectURL(url));
+  Time.sleep(Time.second * 0.5).then(() => URL.revokeObjectURL(url));
 }
