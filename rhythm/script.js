@@ -7,6 +7,7 @@ import {
   search,
   createElement,
   clearChildNodes,
+  downloadFile,
 } from '/src/utils.js';
 
 function createEventElement(tick, innerText, classList, icon) {
@@ -147,6 +148,7 @@ class Renderer {
       vid.src = URL.createObjectURL(new Blob([new Uint8Array(arrayBuffer)]));
       vid.load();
       vid.addEventListener('loadeddata', async () => {
+        vid.volume = 0;
         const vw = vid.videoWidth;
         const vh = vid.videoHeight;
         const vAspectRatio = vw / vh;
@@ -170,8 +172,8 @@ class Renderer {
   }
 
   init(app) {
-    this.width = 2400;
-    this.height = 1350;
+    this.width = 1920;
+    this.height = 1080;
     this.v1 = this.height / 6;
     this.v2 = this.height / 24;
     this.noteRadius = this.width / 56;
@@ -416,8 +418,7 @@ const App = new class {
       reader.addEventListener('load', event => {
         try {
           this.loadChart(JSON.parse(event.target.result));
-        } catch (err) {
-          console.error(err);
+        } catch {
           alert('谱面加载失败。可能是上传了错误的文件或是谱面中存在不受支持的元素。');
         }
       });
@@ -428,6 +429,35 @@ const App = new class {
       const input = prompt('设置谱面延迟（单位：毫秒）：', -this.offset);
       if (!/^-?\d+$/.test(input)) return this.offset = 0;
       this.offset = Number(input) * -1;
+    });
+
+    const importData = $('import-data');
+    importData.addEventListener('click', () => {
+      importData.value = null;
+      this.stop();
+    });
+    importData.addEventListener('change', event => {
+      const reader = new FileReader();
+      reader.addEventListener('load', event => {
+        try {
+          const data = JSON.parse(event.target.result);
+          data.forEach(({ tick, value }) => {
+            this.addTimeRatio(tick, value);
+          });
+          this.applyTimeRatios();
+          alert('导入成功。');
+        } catch {
+          Object.values(this.timeRatios).forEach(({ tick }) => this.removeTimeRatio(tick, false));
+          alert('请选择正确的数据文件。');
+        }
+      });
+      reader.readAsText(event.target.files[0]);
+    });
+
+    $('export').addEventListener('click', () => {
+      const trs = Object.values(this.timeRatios).sort((a, b) => a.tick - b.tick).map(tr => pick(tr, ['tick', 'value']));
+      if (!trs.length) return alert('没有可导出的数据。');
+      downloadFile('time_ratios.json', new Blob([JSON.stringify(trs)], { type: 'application/json' }));
     });
 
     $('apply').addEventListener('click', () => {
@@ -450,7 +480,7 @@ const App = new class {
     });
   }
 
-  addTimeRatio(tick) {
+  addTimeRatio(tick, value) {
     function getValue(value) {
       const input = prompt('请输入倍率（该值表示时基的几倍为一小节）：', value);
       if (!/^(\d+(?:\.\d+)?)$/.test(input)) return null;
@@ -460,7 +490,7 @@ const App = new class {
     }
 
     const tr = this.timeRatios[tick];
-    const value = getValue(tr ? tr.value : this.lastRatioInput);
+    value = value || getValue(tr ? tr.value : this.lastRatioInput);
     if (!value) return;
 
     if (tr) {
@@ -474,20 +504,16 @@ const App = new class {
     $$(anchor, 'i').classList.replace('ti-plus', 'ti-pencil');
     const element = createEventElement(tick, '倍率：' + value, 'remove-time-ratio', 'ti-trash');
     eventList.insertBefore(element, anchor.nextSibling);
-    window.scrollTo({
-      top: element.offsetTop + element.offsetHeight * 0.5 - window.innerHeight / 2,
-      behavior: 'smooth',
-    });
     this.timeRatios[tick] = { tick, value, element };
   }
 
-  removeTimeRatio(tick) {
-    if (this.timeRatios[tick] && confirm('确定要删除吗？')) {
-      this.timeRatios[tick].element.remove();
-      delete this.timeRatios[tick];
-      const anchor = this.eventElements[tick];
-      $$(anchor, 'i').classList.replace('ti-pencil', 'ti-plus');
-    }
+  removeTimeRatio(tick, needConfirm = true) {
+    if (!this.timeRatios[tick]) return;
+    if (needConfirm && !confirm('确定要删除吗？')) return;
+    this.timeRatios[tick].element.remove();
+    delete this.timeRatios[tick];
+    const anchor = this.eventElements[tick];
+    $$(anchor, 'i').classList.replace('ti-pencil', 'ti-plus');
   }
 
   applyTimeRatios() {
