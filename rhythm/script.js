@@ -244,7 +244,7 @@ class Renderer {
     }
   }
 
-  drawInfo(currentTime, currentBpm) {
+  drawInfo(currentTime, { time, bpmDisplay, color }) {
     const { ctx, height, v1, v2, lineWidth } = this;
 
     const length = v1 - lineWidth * 2;
@@ -259,9 +259,21 @@ class Renderer {
     ctx.textBaseline = 'alphabetic';
     ctx.font = `bold ${size * 0.5}px Electrolize`;
     ctx.fillText('BPM', v1 / 2, height - v1 / 2 - size * 0.525 / 2);
-    const bpm = rounding(currentBpm, 2);
+    const text = bpmDisplay > 999 ? '>999' : bpmDisplay;
     ctx.font = `bold ${size}px Electrolize`;
-    ctx.fillText(bpm > 999 ? '>999' : bpm, v1 / 2, height - v1 / 2 + size * 1.3 / 2);
+    ctx.fillText(text, v1 / 2, height - v1 / 2 + size * 1.3 / 2);
+    const passed = currentTime - time;
+    if (passed < 0) return;
+    if (passed < 150) {
+      ctx.fillStyle = `rgb(${color})`;
+      ctx.fillText(text, v1 / 2, height - v1 / 2 + size * 1.3 / 2);
+      return;
+    }
+    if (passed < 500) {
+      const percent = 1 - (passed - 150) / 350;
+      ctx.fillStyle = `rgba(${color}, ${percent})`;
+      ctx.fillText(text, v1 / 2, height - v1 / 2 + size * 1.3 / 2);
+    }
   }
 
   drawNotes(currentTick, currentPosition, notes, index) {
@@ -371,14 +383,14 @@ class Renderer {
     this.clear();
     this.drawBackground();
     this.drawTrack(0, 0, [], 0);
-    this.drawInfo(0, 0);
+    this.drawInfo(0, { time: 0, bpmDisplay: 0, color: '255, 255, 255' });
   }
 
   render(
     currentTime,
     currentTick,
     currentPosition,
-    currentBpm,
+    currentTempo,
     ...args
   ) {
     this.clear();
@@ -386,7 +398,7 @@ class Renderer {
     if (this.vid.readyState !== 0) this.drawVideoFrame();
     this.drawTrack(currentTick, currentPosition, args.shift(), args.shift());
     this.drawNotes(currentTick, currentPosition, args.shift(), args.shift());
-    this.drawInfo(currentTime, currentBpm);
+    this.drawInfo(currentTime, currentTempo);
   }
 }
 
@@ -605,7 +617,7 @@ const App = new class {
       const currentTempoIndex = search(this.tempos, this.currentTime(), 'time');
       const currentTick = this.currentTick(currentTempoIndex);
       const currentPosition = currentTick * this.renderer.pixelsPerTick;
-      const { bpmDisplay } = this.tempos[currentTempoIndex] || { bpmDisplay: this.tempos[0].bpm };
+      const currentTempo = this.tempos[currentTempoIndex] || this.tempos[0];
 
       while (this.lastNoteIndex < this.notes.length) {
         if (!this.notes[this.lastNoteIndex].played) break;
@@ -621,7 +633,7 @@ const App = new class {
         this.currentTime(),
         currentTick,
         currentPosition,
-        bpmDisplay,
+        currentTempo,
         this.lines,
         this.lastLineIndex,
         this.notes,
@@ -679,25 +691,26 @@ const App = new class {
       plcs.push({ type: Type.PAGE, tick: start_tick, length: lastPageLength = length });
     });
 
-    let ratio = 1;
-
-    this.renderer.pixelsPerTick = this.renderer.noteRadius / (time_base / 8) * ratio;
+    this.renderer.pixelsPerTick = this.renderer.noteRadius / (time_base / 8);
 
     tempo_list.sort((a, b) => a.tick - b.tick)
-      .forEach(event => {
-        event.type = Type.TEMPO;
-        event.bpm = 6e7 / event.value;
-        event.bpmDisplay = event.bpm * ratio;
+      .forEach(tempo => {
+        tempo.type = Type.TEMPO;
+        tempo.bpm = 6e7 / tempo.value;
+        tempo.bpmDisplay = rounding(tempo.bpm, 2);
       });
     let currentTime = 0;
-    let lastEventBeats = 0;
-    tempo_list.forEach((event, index) => {
+    let lastBeats = 0;
+    tempo_list.forEach((tempo, index) => {
       const lastBPM = index > 0 ? tempo_list[index - 1].bpm : tempo_list[0].bpm;
-      const beats = event.tick / time_base - lastEventBeats;
+      const beats = tempo.tick / time_base - lastBeats;
       const elapsedMiliseconds = (60 / lastBPM) * beats * 1e3;
-      event.time = elapsedMiliseconds + currentTime;
-      currentTime = event.time;
-      lastEventBeats += beats;
+      tempo.time = elapsedMiliseconds + currentTime;
+      currentTime = tempo.time;
+      lastBeats += beats;
+      if (lastBPM < tempo.bpm) tempo.color = '255, 51, 51';
+      else if (lastBPM > tempo.bpm) tempo.color = '51, 255, 51';
+      else tempo.color = '255, 255, 255';
     });
     this.tempos = tempo_list;
 
@@ -735,7 +748,7 @@ const App = new class {
       }
 
       function parseRhythm(interval, retryTimes) {
-        let v = time_base / interval * 4 / ratio;
+        let v = time_base / interval * 4;
         if (!Number.isInteger(v)) {
           const o = v * 3 / 2;
           if (Number.isInteger(o)) {
