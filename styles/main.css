@@ -334,3 +334,46 @@ main>* {
 }
 
 /*----------------*/
+
+.difficulty {
+  display: inline-block;
+  padding: 0.05em 0.25em;
+  min-width: 5em;
+  text-align: center;
+  font-family: "Electrolize";
+}
+
+.difficulty.easy {
+  color: #2D96C3;
+  background: #05284B;
+}
+
+.difficulty.hard {
+  color: #BE2D2D;
+  background: #320F0F;
+}
+
+.difficulty.chaos {
+  color: #BE28BE;
+  background: #320F32;
+}
+
+.difficulty.glitch {
+  color: #05AA4B;
+  background: #0F2D23;
+}
+
+.difficulty.crash {
+  color: #CC9900;
+  background: #372814;
+}
+
+.difficulty.dream {
+  color: #BCBCBC;
+  background: #3D3D3D;
+}
+
+.difficulty.drop {
+  color: #3D3D3D;
+  background: #FFFFFF;
+}

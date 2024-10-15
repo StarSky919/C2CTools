@@ -338,6 +338,11 @@ export function compile(node, data) {
   return node;
 }
 
+export function bindOnClick(el, func) {
+  if (typeof el === 'string') el = $(el);
+  el.addEventListener('click', func);
+}
+
 export async function loadJSON(url) {
   return await fetch(url).then(res => res.json());
 }
@@ -357,4 +362,14 @@ export function downloadFile(name, blob) {
   link.click();
   document.body.removeChild(link);
   Time.sleep(Time.second * 0.5).then(() => URL.revokeObjectURL(url));
+}
+
+export function createTaskRunner(executeTask) {
+  let stopPrevious;
+  return () => {
+    if (stopPrevious) stopPrevious();
+    let stop = false;
+    executeTask(() => stop);
+    stopPrevious = () => stop = true;
+  };
 }

@@ -9,6 +9,7 @@ import {
   clearChildNodes,
   downloadFile,
 } from '/src/utils.js';
+import convertToC2 from './convert.js';
 
 function createEventElement(tick, innerText, classList, icon) {
   const element = createElement('div', { dataset: { tick } });
@@ -60,6 +61,8 @@ colors[20] = '#FF4292';
 colors[24] = '#72FE2C';
 colors[32] = '#2CFCFE';
 colors[48] = '#FFFF66';
+
+const indexes = [...colors.keys()].filter(index => colors[index] !== undefined);
 
 const bases = [0.25, 0.375, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375];
 const chartInfo = $('chart-info');
@@ -429,8 +432,15 @@ const App = new class {
       const reader = new FileReader();
       reader.addEventListener('load', event => {
         try {
-          this.loadChart(JSON.parse(event.target.result));
-        } catch {
+          try {
+            this.loadChart(JSON.parse(event.target.result), 1);
+          } catch {
+            const { pageSize, c2chart } = convertToC2(event.target.result);
+            this.loadChart(c2chart, 1);
+            this.applyTimeRatiosC1(pageSize);
+          }
+        } catch (error) {
+          log(error)
           alert('谱面加载失败。可能是上传了错误的文件或是谱面中存在不受支持的元素。');
         }
       });
@@ -555,6 +565,14 @@ const App = new class {
     this.lines = lines.sort((a, b) => a.tick - b.tick);
   }
 
+  applyTimeRatiosC1(pageSize) {
+    const { renderer: { pixelsPerTick }, totalTicks, timeRatios } = this;
+    const lines = [];
+    for (let tick = 0; tick < totalTicks; tick += pageSize) {
+      lines.push({ tick, x: tick * pixelsPerTick, type: 0 });
+    }
+    this.lines = lines.sort((a, b) => a.tick - b.tick);
+  }
 
   get playing() {
     return !this.passedTime && !!this.startTime;
@@ -672,13 +690,13 @@ const App = new class {
     page_list,
     tempo_list,
     note_list,
-  }) {
+  }, ratio) {
     this.timeRatios = {};
     this.lines = [];
     this.eventElements = {};
     clearChildNodes(eventList);
 
-    this.timeBase = time_base;
+    this.timeBase = time_base *= ratio;
     this.totalTicks = page_list[page_list.length - 1].end_tick;
     $$(chartInfo, '.value').innerText = time_base;
     chartInfo.classList.remove('hidden');
@@ -696,7 +714,7 @@ const App = new class {
     tempo_list.sort((a, b) => a.tick - b.tick)
       .forEach(tempo => {
         tempo.type = Type.TEMPO;
-        tempo.bpm = 6e7 / tempo.value;
+        tempo.bpm = 6e7 / tempo.value / ratio;
         tempo.bpmDisplay = rounding(tempo.bpm, 2);
       });
     let currentTime = 0;
@@ -758,8 +776,9 @@ const App = new class {
           } else if (distance < 4 && retryTimes > 0) {
             return parseRhythm(interval + addend, retryTimes - 1);
           } else {
-            if (!Number.isFinite(v)) log(note.tick, v);
-            else if (v.toString().split('.')[1].length > 8) {
+            if (!Number.isFinite(v)) {
+              log(note.tick, v);
+            } else if (v.toString().split('.')[1].length > 8) {
               v = Math.round(v);
               note.durationText = '' + v;
             }
@@ -771,6 +790,8 @@ const App = new class {
           return;
         }
 
+        // if (Math.abs(v - 16) < 3) log(v, addend, nearest);
+
         if (note.color = colors[v]) {
           for (const i of [3, 5, 7, 9]) {
             if (v % i === 0) note.mark = '' + i;
@@ -781,7 +802,7 @@ const App = new class {
         resetWithColor('#9F9F9F');
       }
 
-      parseRhythm(nearest, 3);
+      parseRhythm(nearest, 4);
     });
 
     plcs.concat(this.tempos).sort((a, b) => {

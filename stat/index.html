@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1" />
+  <link rel="shortcut icon" href="/assets/logo.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/styles/themify-icons.css" />
+  <link rel="stylesheet" href="/styles/fontface.css" />
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/dialog.css" />
+  <style>
+    #list {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0;
+    }
+
+    #list:empty {
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      padding: 0.65rem 0;
+    }
+
+    #list:empty::before {
+      content: "┐(￣ヘ￣)┌";
+    }
+
+    .chart {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      margin: 0.65rem 0;
+      border: 1px solid var(--border-color);
+      transition: filter 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .chart .inner {
+      width: 100%;
+      height: 100%;
+      padding: 4px 12px;
+      border-left: 3px solid var(--character-theme);
+      background: var(--background-color-second);
+      white-space: nowrap;
+    }
+
+    .chart .inner .left {
+      max-width: calc(100% - 3em);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chart .inner .left .difficulty {
+      margin-right: 8px;
+    }
+
+    .chart .inner .left .name {
+    }
+
+    .chart .inner .data {
+      margin-left: 0px;
+    }
+  </style>
+  <title>谱面数据统计 | C2CTools</title>
+</head>
+
+<body>
+  <noscript class="warning">
+    <p>您的浏览器未启用或不支持JavaScript，无法使用本网站。</p>
+    <p>Your browser isn't enabled or doesn't support JavaScript. Please check and try again.</p>
+  </noscript>
+  <div class="warning hidden">
+    <p>您的浏览器内核版本过低，无法支持网站功能的正常运行。请升级/更换浏览器或是等待本站的兼容性更新。</p>
+  </div>
+  <main>
+    <h2>Cytus II 谱面数据统计</h2>
+    <p>目前只有音符数量的统计，其他数据尚未整理。</p>
+    <hr />
+    <div class="row"><span><span class="button small" id="data-type"><i class="ti-list"></i> <span>--</span></span><span class="button small" id="difficulty"><i class="ti-layers"></i> <span>难度</span></span><span class="button small" id="note-type"><i class="ti-music-alt"></i> <span>类型</span></span></span><span><span class="button small" id="ordering"><i class="ti-exchange-vertical"></i> <span>--</span></span></span></div>
+    <div class="row" id="filter-info">--</div>
+    <div id="list"></div>
+  </main>
+  <template id="template">
+    <div class="chart">
+      <div class="inner">
+        <p class="row"><span class="left"><span class="difficulty">{{ difficulty }}</span><span class="name">{{ name }}</span></span><span class="data">{{ data }}</span></p>
+      </div>
+    </div>
+  </template>
+  <template id="dialog_template">
+    <div class="dialog_container hidden">
+      <div class="dialog_mask"></div>
+      <div class="dialog_box">
+        <div class="title"></div>
+        <div class="content"></div>
+        <div class="buttons"></div>
+      </div>
+    </div>
+  </template>
+  <script>
+    try {
+      fetch;
+      eval('async () => {}');
+      [].push(...[]);
+    } catch (err) {
+      document.querySelector('.warning.hidden').classList.remove('hidden');
+    }
+  </script>
+  <script src="./script.js" type="module"></script>
+</body>
+
+</html>
