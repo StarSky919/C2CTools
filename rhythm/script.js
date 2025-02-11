@@ -10,6 +10,7 @@ import {
   downloadFile,
 } from '/src/utils.js';
 import convertToC2 from './convert.js';
+import preprocess from './preprocess.js';
 
 function createEventElement(tick, innerText, classList, icon) {
   const element = createElement('div', { dataset: { tick } });
@@ -291,6 +292,7 @@ class Renderer {
       const x = offsetX + note.x - currentPosition;
       if (x - noteRadius > width) break;
       if (x + noteRadius < 0) continue;
+      let c;
 
       ctx.beginPath();
       if (note.dotted) {
@@ -299,15 +301,19 @@ class Renderer {
         ctx.lineTo(x, noteY + noteRadius);
         ctx.lineTo(x + noteRadius, noteY);
         ctx.lineTo(x, noteY - noteRadius);
+        c = noteRadius * Math.sqrt(2) / 4;
       } else {
         ctx.arc(x, noteY, noteRadius, 0, 2 * Math.PI, false);
+        c = Math.PI * noteRadius * 2 / 16;
       }
       ctx.closePath();
       ctx.fillStyle = note.color;
       ctx.fill();
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = '#FFFFFF';
+      ctx.setLineDash(note.dashed ? [c, c] : []);
       ctx.stroke();
+      if (note.dashed) ctx.setLineDash([]);
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
@@ -324,6 +330,12 @@ class Renderer {
         ctx.fillStyle = note.dotted ? '#FC2222' : '#252525';
         ctx.font = `bold ${size}px Electrolize`;
         ctx.fillText(note.durationText, x, height - size * 1.1);
+      }
+
+      if (Number.isFinite(note.id)) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${height / 32}px Electrolize`;
+        ctx.fillText(note.id, x, height - this.v2 * 5);
       }
     }
   }
@@ -432,15 +444,16 @@ const App = new class {
       const reader = new FileReader();
       reader.addEventListener('load', event => {
         try {
+          let chart;
           try {
-            this.loadChart(JSON.parse(event.target.result), 1);
-          } catch {
+            chart = JSON.parse(event.target.result);
+          } catch (error) {
             const { pageSize, c2chart } = convertToC2(event.target.result);
             this.loadChart(c2chart, 1);
             this.applyTimeRatiosC1(pageSize);
           }
+          if (chart) this.loadChart(chart, 1);
         } catch (error) {
-          log(error)
           alert('谱面加载失败。可能是上传了错误的文件或是谱面中存在不受支持的元素。');
         }
       });
@@ -552,6 +565,10 @@ const App = new class {
         lines.push({ tick, x: tick * pixelsPerTick, type: 0 });
       }
     });
+
+    if (!lines.find(({ tick }) => tick === totalTicks)) {
+      lines.push({ tick: totalTicks, x: totalTicks * pixelsPerTick, type: 0 });
+    }
 
     lines.slice().forEach((line, i) => {
       const next = lines[i + 1] || fallback;
@@ -737,16 +754,22 @@ const App = new class {
       const isDragChild = [Type.DRAG_CHILD, Type.CLICK_DRAG_CHILD, Type.DROP_DRAG].includes(note.type);
       if (isDragChild) return false;
       if (tickMap[note.tick]) {
+        tickMap[note.tick].types.push(note.type);
         tickMap[note.tick].multiple = true;
         return false;
       } else {
         tickMap[note.tick] = note;
+        note.types = [note.type];
         return true;
       }
-    }).map(note => {
-      note = pick(note, ['tick', 'multiple']);
+    }).map((note, i) => {
+      note = pick(note, ['tick', 'multiple', 'types']);
       note.x = note.tick * this.renderer.pixelsPerTick;
       note.time = this.tickToMs(note.tick);
+      if (note.types?.every(type => [Type.DRAG, Type.HOLD, Type.LONG_HOLD].includes(type))) {
+        note.dashed = true;
+        delete note.types;
+      }
       return note;
     }).sort((a, b) => a.tick - b.tick);
     this.notes.forEach((note, index) => {
@@ -754,9 +777,13 @@ const App = new class {
         .filter(Boolean)
         .map(n => Math.abs(note.tick - n.tick));
       const nearest = Math.min(...neighbors);
-      const unitDigit = nearest % 10;
-      const distance = Math.abs(unitDigit - Math.round(unitDigit / 10) * 10);
-      const addend = unitDigit > 5 ? 1 : -1;
+      const maxLimit = this.msToTick(this.tickToMs(note.tick) + 5) - note.tick;
+      let num = 1;
+
+      function updateAddend() {
+        const result = num % 2 === 0 ? -num / 2 : (num + 1) / 2;
+        return num++, result;
+      }
 
       function resetWithColor(color) {
         delete note.durationText;
@@ -765,7 +792,7 @@ const App = new class {
         note.color = color;
       }
 
-      function parseRhythm(interval, retryTimes) {
+      function parseRhythm(interval) {
         let v = time_base / interval * 4;
         if (!Number.isInteger(v)) {
           const o = v * 3 / 2;
@@ -773,8 +800,8 @@ const App = new class {
             note.dotted = true;
             note.durationText = o + '.';
             v = o;
-          } else if (distance < 4 && retryTimes > 0) {
-            return parseRhythm(interval + addend, retryTimes - 1);
+          } else if (Math.abs(interval - nearest) < maxLimit) {
+            return parseRhythm(nearest + updateAddend());
           } else {
             if (!Number.isFinite(v)) {
               log(note.tick, v);
@@ -790,8 +817,6 @@ const App = new class {
           return;
         }
 
-        // if (Math.abs(v - 16) < 3) log(v, addend, nearest);
-
         if (note.color = colors[v]) {
           for (const i of [3, 5, 7, 9]) {
             if (v % i === 0) note.mark = '' + i;
@@ -802,7 +827,7 @@ const App = new class {
         resetWithColor('#9F9F9F');
       }
 
-      parseRhythm(nearest, 4);
+      parseRhythm(nearest);
     });
 
     plcs.concat(this.tempos).sort((a, b) => {

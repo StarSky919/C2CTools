@@ -415,14 +415,14 @@ $('zoom-in').addEventListener('click', () => {
   if (!charts) return;
   idx--;
   if (idx < 0) idx = 0;
-  setChartBox(charts, cols[idx]);
+  else setChartBox(charts, cols[idx]);
 });
 $('zoom-out').addEventListener('click', () => {
   const charts = $$('.chart');
   if (!charts) return;
   idx++;
   if (idx > cols.length - 1) idx = cols.length - 1;
-  setChartBox(charts, cols[idx]);
+  else setChartBox(charts, cols[idx]);
 });
 
 const fileInput = $('import-chart');

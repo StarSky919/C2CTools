@@ -7,7 +7,7 @@ import {
   compile,
   clearChildNodes,
   loadJSON,
-  createTaskRunner
+  createTaskRunner,
 } from '/src/utils.js';
 import Datastore from '/src/datastore.js';
 import { Dialog, ItemSelectorDialog } from '/src/dialog.js';
@@ -22,6 +22,8 @@ try {
 const filterInfo = $('filter-info');
 const chartList = $('list');
 const chartTemplate = $('template');
+const difficultlyDefault = () => [2, 3];
+const noteTypeDefault = () => [0, 1, 2, 3, 4];
 
 window.storage = new Datastore('c2ct:');
 
@@ -69,8 +71,8 @@ async function main() {
   const loadCharts = createTaskRunner(async shouldStop => {
     clearChildNodes(chartList);
     const dataType = storage.get('data-type', 0);
-    const difficulty = storage.get('difficulty', [2]);
-    const noteType = storage.get('note-type', [0]);
+    const difficulty = storage.get('difficulty', difficultlyDefault());
+    const noteType = storage.get('note-type', noteTypeDefault());
     const reverse = storage.get('reverse', true);
     filterInfo.innerText = '已选难度：' + difficulty.map(d => diffNames[d]).join('、');
     filterInfo.innerText += '\n已选音符：' + noteType.map(t => typesDisplay[t]).join('、');
@@ -107,7 +109,7 @@ async function main() {
   })(['数量', '百分比']));
 
   bindOnClick('difficulty', event => {
-    new ItemSelectorDialog({ settingName: 'difficulty', multiple: true, defaultValue: [2] })
+    new ItemSelectorDialog({ settingName: 'difficulty', multiple: true, defaultValue: difficultlyDefault() })
       .title('选择难度')
       .setItem(diffNames.map((text, id) => ({ id, text })))
       .onConfirm(loadCharts)
@@ -115,7 +117,7 @@ async function main() {
   });
 
   bindOnClick('note-type', event => {
-    new ItemSelectorDialog({ settingName: 'note-type', multiple: true, defaultValue: [0] })
+    new ItemSelectorDialog({ settingName: 'note-type', multiple: true, defaultValue: noteTypeDefault() })
       .title('选择音符类型')
       .setItem(typesDisplay.map((text, id) => ({ id, text })))
       .onConfirm(loadCharts)
