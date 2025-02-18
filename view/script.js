@@ -73,7 +73,7 @@ function preprocess({
       right: 0,
     },
   };
-
+  
   const pages = [];
   let previousEndTick, previousPageScale, previousPageLength, previousPageLengthRatio = 2 / ((page_list[0].end_tick - page_list[0].start_tick) / time_base);
   for (let i = 0; i < page_list.length; i++) {
@@ -115,7 +115,7 @@ function preprocess({
     previousPageScale = pageScale;
     previousPageLength = pageLength;
   }
-
+  
   tempo_list.forEach((tempo, index) => {
     tempo.type = Type.TEMPO;
     const next = tempo_list[index + 1];
@@ -123,7 +123,7 @@ function preprocess({
     tempo.end = tempo.tick + tempo.length;
     if (next) statistic.tempo[next.value < tempo.value ? 'up' : 'down']++;
   });
-
+  
   event_order_list.reduce((events, { event_list }) => {
     events.push(...event_list);
     return events;
@@ -132,20 +132,20 @@ function preprocess({
     if (inRange(type, 2, 7)) statistic.event.ui++;
     if (type === 8) statistic.event.text++;
   });
-
+  
   note_list.forEach(({ type, id, next_id }) => {
     if (![Type.DRAG, Type.DRAG_CHILD, Type.CLICK_DRAG, Type.CLICK_DRAG_CHILD].includes(type)) return;
     if (next_id <= 0) return;
     note_list[next_id].previous_id = id;
   });
-
+  
   for (const page of pages) {
     const tempoInPage = tempo_list.filter(tempo => (tempo.tick <= page.tick && tempo.end > page.tick) || (tempo.tick >= page.tick && tempo.tick < page.end));
     const { Arguments: args } = page.PositionFunction;
     if (page.lengthChanged || page.scaleChanged) page.bpmInPage[page.tick] = tempoToBPM(tempoInPage.shift().value) * page.lengthRatio * args[0];
     for (const tempo of tempoInPage) page.bpmInPage[tempo.tick] = tempoToBPM(tempo.value) * page.lengthRatio * args[0];
   }
-
+  
   const longHolds = [];
   const addHoldBody = (id, tick, length, x, ended = false) => longHolds.push({
     id,
@@ -175,7 +175,7 @@ function preprocess({
       }
     } else addHoldBody(id, tick, hold_tick, x, true);
   }
-
+  
   return {
     pages,
     notes: note_list,
@@ -186,39 +186,44 @@ function preprocess({
 async function viewChart(chart) {
   try {
     const { pages, notes, longHolds } = preprocess(chart);
-
+    
     progressPercentage.style.setProperty('--progress', '0%');
     progressCount.innerText = `0 / ${pages.length}`;
     loading.classList.remove('hidden');
     await Time.sleep(Time.second * 0.5);
     clearChildNodes(container);
-
+    
     const top = 50;
     const bottom = 344;
     const height = bottom - top;
     const padding = 512 / 12;
-
+    
     let previousPage, previousBPM = 0;
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
-
+      
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 512 384');
-
+      
       svg.innerHTML += '<rect height="384" width="512" x="0" y="0" />';
       svg.innerHTML += `<text fill="#FFFFFF" font-family="Electrolize" font-size="24" font-weight="bold" text-anchor="start" dominant-baseline="hanging" x="10.24" y="7.68">${page.index}</text>`;
-
+      
       const { Arguments: args } = page.PositionFunction;
       const h = args[0] * height;
       const p = (args[1] * -1 + 1) / 2;
       const y1 = height * p - h / 2 + top;
       const y2 = height * p + h / 2 + top;
-
+      
       function getCoor(note, page) {
+        const { Arguments: args } = page.PositionFunction;
+        const h = args[0] * height;
+        const p = (args[1] * -1 + 1) / 2;
+        const y1 = height * p - h / 2 + top;
+        const y2 = height * p + h / 2 + top;
         const pc = (note.tick - page.tick) / page.length;
         return [note.x * (512 - padding * 2) + padding, y1 + (y2 - y1) * (page.direction === 1 ? (1 - pc) : pc)];
       }
-
+      
       const { bpmInPage } = page;
       const bpmTicks = Object.keys(bpmInPage);
       if (bpmTicks.length > 1) {
@@ -234,12 +239,12 @@ async function viewChart(chart) {
         svg.innerHTML += `<text fill="#FFFFFF" font-family="Electrolize" font-size="16" font-weight="bold" text-anchor="end" dominant-baseline="hanging" x="409.6" y="7.68">SCANLINE:</text>`;
         svg.innerHTML += `<text fill="#FFFFFF" font-family="Electrolize" font-size="16" font-weight="bold" text-anchor="end" dominant-baseline="hanging" x="501.76" y="7.68">${bpm > 9999.99 ? '9999.99+' : bpm.toFixed(2)}</text>`;
       } else throw '谱面的速度存在错误。';
-
+      
       svg.innerHTML += '<line stroke="#FFFFFF" stroke-dasharray="1,20.2917" stroke-width="2" x1="0" x2="512" y1="50" y2="50" />';
       svg.innerHTML += '<line stroke="#FFFFFF" stroke-dasharray="1,20.2917" stroke-width="2" x1="0" x2="512" y1="344" y2="344" />';
       svg.innerHTML += `<line stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="2" x1="0" x2="512" y1="${y1}" y2="${y1}" />`;
       svg.innerHTML += `<line stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="2" x1="0" x2="512" y1="${y2}" y2="${y2}" />`;
-
+      
       for (const tick of bpmTicks) {
         if (!inRange(tick, page.tick, page.end - 1)) continue;
         const bpm = bpmInPage[tick];
@@ -251,22 +256,22 @@ async function viewChart(chart) {
         }
         previousBPM = bpm;
       }
-
+      
       svg.innerHTML += `<defs><linearGradient id="${page.index}" x1="0" x2="0" y1="0" y2="1"><stop offset="0.1" stop-color="rgb(255,255,255)" /><stop offset="0.9" stop-color="rgb(255,255,255)" /></linearGradient></defs>`;
       if (page.direction === 1) {
         svg.innerHTML += `<polygon fill="url(#${page.index})" points="0,87 0,307 16,307 16,142 32,142" />`;
       } else {
         svg.innerHTML += `<polygon fill="url(#${page.index})" points="0,307 0,87 16,87 16,252 32,252" />`;
       }
-
+      
       const ghost = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       ghost.classList.add('ghost');
       ghost.setAttribute('opacity', '0.3');
       svg.appendChild(ghost);
-
+      
       const noteGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       svg.appendChild(noteGroup);
-
+      
       function drawNote(note) {
         if (note.x < 0.5) statistic.note.left++;
         else if (note.x > 0.5) statistic.note.right++;
@@ -323,21 +328,21 @@ async function viewChart(chart) {
         }
         noteGroup.innerHTML += `</g>`;
       }
-
+      
       for (const note of longHolds) {
         if (inRange(note.tick, page.tick, page.end - 1)) drawNote(note);
       }
-
+      
       const notesInPage = notes.filter(note => {
         if (note.page_index === page.index && !note.is_forward) return true;
         if (note.page_index === page.index + 1 && note.is_forward) return true;
         return false;
       }).reverse();
-
+      
       for (const note of notesInPage) {
         if (note.type === Type.HOLD) drawNote(note);
       }
-
+      
       const drags = notesInPage.filter(note => [Type.DRAG, Type.DRAG_CHILD, Type.CLICK_DRAG, Type.CLICK_DRAG_CHILD].includes(note.type)).reverse();
       for (const drag of drags) {
         const [dx1, dy1] = getCoor(drag, page);
@@ -348,30 +353,31 @@ async function viewChart(chart) {
         }
         const next = notes[drag.next_id];
         if (next && next.tick === page.end) {
-          const [dx3, dy3] = getCoor(next, pages[next.page_index]);
+          const [dx3, dy3] = getCoor(next, pages[next.page_index - +(next.is_forward ?? false)]);
           noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx3}" y1="${dy1}" y2="${dy3}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
         }
       }
-
+      
       for (const note of notesInPage) {
         if (note.type !== Type.HOLD) drawNote(note);
       }
-
+      
       if (previousPage) {
         previousPage.innerHTML += noteGroup.innerHTML;
       }
       previousPage = ghost;
-
+      
       container.appendChild(createElement('div', { classList: ['chart'], dataset: { index: page.index } }, [svg]));
       progressPercentage.style.setProperty('--progress', `${(i + 1) / pages.length * 100}%`);
       progressCount.innerText = `${(i + 1)} / ${pages.length}`;
       await Time.sleep(0);
     }
-
+    
     await Time.sleep(Time.second * 0.5);
   } catch (err) {
     clearChildNodes(container);
     alert(`谱面加载失败：\n${err}`);
+    console.error(err)
   } finally {
     loading.classList.add('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
