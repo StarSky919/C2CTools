@@ -352,8 +352,8 @@ async function viewChart(chart) {
           noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx2}" y1="${dy1}" y2="${dy2}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
         }
         const next = notes[drag.next_id];
-        if (next && next.tick === page.end) {
-          const [dx3, dy3] = getCoor(next, pages[next.page_index - +(next.is_forward ?? false)]);
+        if (next && next.tick === page.end && !next.is_forward) {
+          const [dx3, dy3] = getCoor(next, pages[next.page_index]);
           noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx3}" y1="${dy1}" y2="${dy3}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
         }
       }
