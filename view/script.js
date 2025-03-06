@@ -321,7 +321,7 @@ async function viewChart(chart) {
         if (note.type === Type.DRAG) {
           const next = notes[note.next_id];
           if (next) {
-            const [dx, dy] = getCoor(next, pages[next.page_index]);
+            const [dx, dy] = getCoor(next, pages[next.page_index - next.is_forward]);
             const angle = Math.atan2(dy - y, dx - x) * (180 / Math.PI);
             noteGroup.innerHTML += `<polygon points="${x - 8},${y + 6} ${x},${y} ${x + 8},${y + 6} ${x},${y - 8} " fill="${page.direction === 1 ? 'rgb(182,180,203)' : 'rgb(172,180,203)'}" transform="rotate(${angle + 90},${x},${y})" />`;
           }
