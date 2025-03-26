@@ -346,15 +346,10 @@ async function viewChart(chart) {
       const drags = notesInPage.filter(note => [Type.DRAG, Type.DRAG_CHILD, Type.CLICK_DRAG, Type.CLICK_DRAG_CHILD].includes(note.type)).reverse();
       for (const drag of drags) {
         const [dx1, dy1] = getCoor(drag, page);
-        const previous = notes[drag.previous_id];
-        if (previous && drag.tick > page.tick) {
-          const [dx2, dy2] = getCoor(previous, pages[previous.page_index]);
-          noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx2}" y1="${dy1}" y2="${dy2}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
-        }
         const next = notes[drag.next_id];
-        if (next && next.tick === page.end && !next.is_forward) {
-          const [dx3, dy3] = getCoor(next, pages[next.page_index]);
-          noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx3}" y1="${dy1}" y2="${dy3}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
+        if (next) {
+          const [dx2, dy2] = getCoor(next, pages[next.page_index]);
+          noteGroup.innerHTML += `<line class="drag-link" x1="${dx1}" x2="${dx2}" y1="${dy1}" y2="${dy2}" stroke="rgb(255,255,255)" stroke-dasharray="3,3" stroke-opacity="0.7" stroke-width="5"></line>`;
         }
       }
       
